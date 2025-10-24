@@ -11,21 +11,22 @@ pipeline{
         }
         stage("Adding a file"){
             steps{
-                runShell('echo Building project...')
+                //runShell('echo Building project...')
                 sh "touch ~/jenkins-test/file.txt"
             }
         }
         stage('Build both parts') {
             steps {
-                deploy(params.DEPLOY_ENV)
+                //deploy(params.DEPLOY_ENV)
                 dir('frontend') { sh 'echo building FE; pwd' }
                 dir('backend')  { sh 'echo building BE; pwd' }
             }
         }
         stage('Greet'){
             steps {
-                sayHello('Jenkins')
-                safeStage('Flaky') { sh 'exit 1' }
+                 sh "touch ~/jenkins-test/file.txt"
+                //sayHello('Jenkins')
+                //safeStage('Flaky') { sh 'exit 1' }
             }
         }
     }
