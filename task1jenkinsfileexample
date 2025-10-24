@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+    }
     stages {
         stage('Init') {
             steps {
@@ -33,7 +35,7 @@ pipeline {
             }
         }
 
-         stage('Deploy') {
+        stage('Deploy') {
             steps {
                 sh 'docker run -d --name flask-app --network new-network flask-app:latest'
                 sh 'docker run -d -p 80:80 --name mynginx --network new-network mynginx:latest'
@@ -41,27 +43,30 @@ pipeline {
         }
 
         stage('Execute Tests') {
-         //   options {
-        //allowFailure true
-           // timeout(time: 30, unit: 'MINUTES')
-            //disableConcurrentBuilds()
-    //}
             steps {
                 script {
-                    catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE'/*failure/success/aborted*/){
-                // sudo apt install pythjon3-venv on ec2 first!!!!
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                         sh '''
-                python3 -m venv .venv
-                . .venv/bin/activate
-                pip install -r requirements.txt
-                python3 -m unittest discover -s tests .
-                deactivate
-                '''
+                            python3 -m venv .venv
+                            . .venv/bin/activate
+                            pip install -r requirements.txt
+                            python3 -m unittest discover -s tests .
+                            deactivate
+                        '''
                     }
                 }
             }
         }
+
+        stage('push') {
+            steps {
+                sh "echo \$DOCKERHUB_CREDENTIALS_PSW | docker login -u \$DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                sh "docker tag flask-app:latest chrisreeves1/flask-app:latest"
+                sh "docker push chrisreeves1/flask-app:latest"
+            }
+        }
     }
+
     post {
         success {
             echo 'Pipeline completed successfully!'
