@@ -1,10 +1,6 @@
 pipeline {
-  /******************************************************************
-   * Top-level configuration (easy to teach!)                      *
-   ******************************************************************/
   agent any
 
-  /* Parametrised build */
   parameters {
     string(name: 'APP_VERSION', defaultValue: '1.0.0', description: 'Version tag to build')
     booleanParam(name: 'RUN_E2E', defaultValue: true, description: 'Run E2E (demo) stage?')
@@ -12,7 +8,6 @@ pipeline {
     text(name: 'NOTES', defaultValue: 'Teaching demo run', description: 'Free-form notes')
   }
 
-  /* Global environment (visible via env.*) */
   environment {
     APP_NAME           = 'demo-teaching-app'
     DEFAULT_TIMEOUT_M  = '5'
@@ -23,28 +18,22 @@ pipeline {
     ARTIFACT_NAME      = "${APP_NAME}-${VERSION}.tar.gz"
   }
 
-  /* Pipeline-level behaviour and hygiene */
   options {
-    buildDiscarder(logRotator(numToKeepStr: '20'))     // keep last 20 builds
-    disableConcurrentBuilds()                          // one at a time
-    timestamps()                                       // timestamp console
-    ansiColor('xterm')                                 // nicer output
-    skipDefaultCheckout(false)                         // do the normal SCM checkout
-    // timeout applies to the whole pipeline if you want:
-    // timeout(time: 30, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '5'))     
+    disableConcurrentBuilds()                          
+    timestamps()                                       
+    ansiColor('xterm')                                 
+    skipDefaultCheckout(false)                         
+    // timeout(time: 10, unit: 'MINUTES')
   }
 
-  /* (Optional) tools, triggers, etc.
   tools {
     // e.g., jdk 'jdk17'
   }
   triggers {
     // cron('H H * * 1-5')
-  } */
+  } 
 
-  /******************************************************************
-   * Stages                                                         *
-   ******************************************************************/
   stages {
 
     stage('Prep') {
@@ -58,7 +47,7 @@ pipeline {
       }
     }
 
-    stage('Validate Parameters (fast fail)') {
+    stage('Validate Parameters') {
       steps {
         sh '''
           echo "APP_NAME=${APP_NAME}"
@@ -74,7 +63,7 @@ pipeline {
         branch 'main'
       }
       options {
-        timeout(time: 2, unit: 'MINUTES') // stage-level option
+        timeout(time: 2, unit: 'MINUTES') 
       }
       steps {
         input message: "Proceed with build on branch 'main'?", ok: 'Yes, continue'
@@ -86,7 +75,7 @@ pipeline {
       parallel {
         stage('Lint (catchError→UNSTABLE)') {
           steps {
-            // catchError lets pipeline continue, but marks build accordingly
+            
             catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
               sh './scripts/lint.sh'
             }
@@ -107,8 +96,8 @@ pipeline {
 
     stage('Build (timeout + retry)') {
       options {
-        timeout(time: 3, unit: 'MINUTES') // stage-level timeout
-        retry(2)                           // if it fails, try 2 more times
+        timeout(time: 3, unit: 'MINUTES') 
+        retry(2)                           
       }
       environment {
         BUILD_TMP = 'build-output'
@@ -133,8 +122,6 @@ pipeline {
         warnError('Unit tests had failures (demo)') {
           sh './scripts/run_tests.sh'
         }
-        // If you generate JUnit XML, you can publish it:
-        // junit 'reports/*.xml'
       }
       post {
         unstable { echo 'Test issues detected (warnError made build UNSTABLE).' }
@@ -146,11 +133,11 @@ pipeline {
         script {
           // 1) Hard fail immediately:
           echo '1) Calling error(...) to fail fast (demo of commented-out code)'
-          // error('Demonstration hard fail') // <- leave commented for teaching
+          //error('Demonstration hard fail')  
 
           // 2) try/catch with Scripted block inside Declarative:
           try {
-            sh 'bash -c "exit 0"'     // success path
+            sh 'bash -c "exit 0"'     
             echo 'try/catch example: success'
           } catch (e) {
             echo "try/catch caught: ${e}"
@@ -181,7 +168,7 @@ pipeline {
       when {
         anyOf {
           branch 'main'
-          expression { return params.DEPLOY_ENV != 'dev' } // demonstrate expression gate
+          expression { return params.DEPLOY_ENV != 'dev' } 
         }
       }
       environment {
@@ -209,19 +196,15 @@ pipeline {
       }
       post {
         always  { echo 'E2E always block (cleanup hooks, etc.)' }
-        success { echo 'E2E success 🎉' }
-        failure { echo 'E2E failed ❌' }
+        success { echo 'E2E success' }
+        failure { echo 'E2E failed' }
       }
     }
-  } // end stages
-
-  /******************************************************************
-   * Pipeline-level post actions                                    *
-   ******************************************************************/
+  } 
   post {
     always {
       echo "Always: notify/log/cleanup. Contact: ${CONTACT_EMAIL}"
-      // cleanWs() // if you use Workspace Cleanup plugin
+      // cleanWs() //needs Workspace Cleanup plugin
     }
     success {
       echo 'Pipeline finished SUCCESS.'
