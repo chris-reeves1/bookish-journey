@@ -6,7 +6,6 @@ pipeline{
     stages{
         stage("Making a directory"){
             steps{
-                buildInfo()
                 sh "mkdir ~/jenkins-test || true"       
             }
         }
