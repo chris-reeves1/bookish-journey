@@ -1,0 +1,27 @@
+setup:
+    Install docker curl https://get.docker.com | sudo bash
+    sudo usermod -aG docker jenkins
+    sudo usermod -aG docker ubuntu
+    sudo reboot
+
+repo -  app.py
+        Dockerfile
+        Jenkinsfile
+        reqs.txt
+        nginx.conf
+        Dockerfile.nginx
+
+Jenkinsfile:
+        - clean-up
+        - set up stage (networks/volumes)
+        - build images
+        - run containers
+
+
+Stretch:
+    Scan the fs with Trivy and archive the artifacts. (SEE GUIDE)
+    Run a unit test in the pipeline. 
+
+
+unitTest unit you can use:
+
