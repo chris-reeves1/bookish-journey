@@ -1,8 +1,8 @@
 pipeline{
     agent any
-     parameters {
-    choice(name: 'DEPLOY_ENV', choices: ['dev', 'staging', 'prod'], description: 'Target env')
-  }
+  //    parameters {
+  //   choice(name: 'DEPLOY_ENV', choices: ['dev', 'staging', 'prod'], description: 'Target env')
+  // }
     stages{
         stage("Making a directory"){
             steps{
