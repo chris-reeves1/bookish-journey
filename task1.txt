@@ -17,6 +17,7 @@ Jenkinsfile:
         - build images
         - run containers
 
+jenkins job set up. 
 
 Stretch:
     Scan the fs with Trivy and archive the artifacts. (SEE GUIDE)
